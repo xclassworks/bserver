@@ -29,8 +29,12 @@ io.on('connection', (socket) => {
      * @param token
      * @param nickName
      */
-    socket.on('robotregister', (nickName) => {
+    socket.on('robotregister', (opts) => {
         let token = uuid.v4();
+
+        opts = opts || {};
+
+        let nickName = opts.nickName;
 
         robotsMap.set(token, {
             token: token,
@@ -58,13 +62,18 @@ io.on('connection', (socket) => {
      * @event `robotstream:error`
      * @param err
      */
-    socket.on('robotstream', (token, buffer) => {
+    socket.on('robotstream', (opts) => {
+        opts = opts || {};
+
+        let token = opts.token;
+        let buffer = opts.buffer;
+
         let robot = robotsMap.get(token);
 
         if (robot) {
 
             for (let listener of robot.listeners) {
-                listener.emit('robotstream:data', buffer);
+                listener.emit('robotstream:data', { data: buffer });
             }
         } else {
             socket.emit('robotstream:error', `Robot ${token} not found or active`);
@@ -83,7 +92,11 @@ io.on('connection', (socket) => {
      * @event `pairrobot:error`
      * @param err
      */
-    socket.on('pairrobot', (token) => {
+    socket.on('pairrobot', (opts) => {
+        opts = opts || {};
+
+        let token = opts.token;
+
         let robot = robotsMap.get(token);
 
         if (robot) {
