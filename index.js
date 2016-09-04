@@ -15,7 +15,7 @@ server.listen(PORT, () => {
 
 app.use(express.static(`${__dirname}/public`));
 
-let uuid = require('uuid');
+let randtoken = require('rand-token');
 let robotsMap = new Map();
 
 io.on('connection', (socket) => {
@@ -30,7 +30,7 @@ io.on('connection', (socket) => {
      * @param nickName
      */
     socket.on('robotregister', (opts) => {
-        let token = uuid.v4();
+        let token = randtoken.generate(4);
 
         opts = opts || {};
 
