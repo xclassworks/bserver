@@ -68,6 +68,8 @@ io.on('connection', (socket) => {
         let token = opts.token;
         let buffer = opts.buffer;
 
+        logger.trace(`Robot stream invoked. Token: ${token} Data: ${buffer}`);
+
         let robot = robotsMap.get(token);
 
         if (robot) {
