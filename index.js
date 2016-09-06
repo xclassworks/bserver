@@ -8,6 +8,7 @@ var log4js = require('log4js');
 var logger = log4js.getLogger();
 
 const PORT = 8989;
+const STOP_COMMAND = 'S';
 
 server.listen(PORT, () => {
     logger.info(`Server up and runnig at PORT ${PORT}`);
@@ -145,6 +146,38 @@ io.on('connection', (socket) => {
                 socket.emit('robotmoverequest:success', 'Your move request was done');
             } else {
                 socket.emit('robotmoverequest:error', `Robot "${socket.robotToken}" not found or active`);
+            }
+        }
+    });
+
+    /**
+     * @event `robotstoprequest`
+     *
+     * Triggered events
+     * @event `robotstoprequest:success`
+     * @param successMessage
+     *
+     * @event `robotstoprequest:error`
+     * @param err
+     *
+     * @event `robotstop`
+     * @param STOP_COMMAND
+     */
+    socket.on('robotstoprequest', () => {
+
+        logger.trace('Robot stop request triggered');
+
+        if (!socket.isRobotClient || !socket.robotToken) {
+            socket.emit('robotstoprequest:error', 'You are not paired with any robot');
+        } else {
+            let robot = robotsMap.get(socket.robotToken);
+
+            if (robot) {
+                robot.socket.emit('robotstop', STOP_COMMAND);
+
+                socket.emit('robotstoprequest:success', 'Your stop request was done');
+            } else {
+                socket.emit('robotstoprequest:error', `Robot "${socket.robotToken}" not found or active`);
             }
         }
     });
