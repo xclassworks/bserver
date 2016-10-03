@@ -182,6 +182,26 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('signalingMessage', (message) => {
+        let robot = robotsMap.get(socket.robotToken);
+
+        if (!robot) {
+            console.log('No robot found in the event signalingMessage');
+            return;
+        }
+
+        if (socket.isRobotClient)
+            robot.socket.emit('signalingMessage', message);
+        else if (socket.robotToken) {
+
+            if (robot.listeners.length > 0) {
+                robot.listeners.map((listener) => listener.emit('signalingMessage', message));
+            } else {
+                robot.pendingMessages.push(message);
+            }
+        }
+    });
+
     socket.on('disconnect', () => {
         logger.trace('Bye sucker!');
 
