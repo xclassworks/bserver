@@ -1,8 +1,6 @@
 'use strict';
 
-let express = require('express');
-let app = express();
-let server = require('http').Server(app);
+let server = require('http').createServer();
 let io = require('socket.io')(server);
 var log4js = require('log4js');
 var logger = log4js.getLogger();
@@ -13,8 +11,6 @@ const STOP_COMMAND = 'S';
 server.listen(PORT, () => {
     logger.info(`Server up and runnig at PORT ${PORT}`);
 });
-
-app.use(express.static(`${__dirname}/public`));
 
 let randtoken = require('rand-token');
 let robotsMap = new Map();
