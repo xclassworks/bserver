@@ -1,19 +1,24 @@
 'use strict';
 
-let server = require('http').createServer();
-let io = require('socket.io')(server);
-var log4js = require('log4js');
-var logger = log4js.getLogger();
-
+// Constants
+const serverConfigs = {
+    NPNProtocols: ['https/2.0', 'http/1.1', 'sdpy', 'http/1.0']
+};
 const PORT = 8989;
 const STOP_COMMAND = 'S';
+
+let server = require('https').createServer(serverConfigs);
+let io = require('socket.io')(server);
+
+let log4js = require('log4js');
+let logger = log4js.getLogger();
+
+let randtoken = require('rand-token');
+let robotsMap = new Map();
 
 server.listen(PORT, () => {
     logger.info(`Server up and runnig at PORT ${PORT}`);
 });
-
-let randtoken = require('rand-token');
-let robotsMap = new Map();
 
 io.on('connection', (socket) => {
 
