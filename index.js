@@ -1,20 +1,31 @@
 'use strict';
 
+const fs = require('fs');
+const log4js = require('log4js');
+const randtoken = require('rand-token');
+
+const BMATE_HOME = process.env.BMATE_HOME;
+
+if (!BMATE_HOME) {
+    spawnError(`The BMATE_HOME enviroment variable is not defined. Is not possible get the properly
+configs for the server`);
+}
+
+checkSSLCertificate();
+
 // Constants
-const serverConfigs = {
-    NPNProtocols: ['https/2.0', 'http/1.1', 'sdpy', 'http/1.0']
+const serverOptions = {
+    key:            fs.readFileSync(`${BMATE_HOME}/SSLCertificate/key.pem`),
+    cert:           fs.readFileSync(`${BMATE_HOME}/SSLCertificate/cert.pem`),
+    NPNProtocols:   ['https/2.0', 'http/1.1', 'sdpy', 'http/1.0']
 };
 const PORT = 8989;
 const STOP_COMMAND = 'S';
 
-let server = require('https').createServer(serverConfigs);
-let io = require('socket.io')(server);
-
-let log4js = require('log4js');
-let logger = log4js.getLogger();
-
-let randtoken = require('rand-token');
-let robotsMap = new Map();
+const server = require('https').createServer(serverOptions);
+const io = require('socket.io')(server);
+const logger = log4js.getLogger();
+const robotsMap = new Map();
 
 server.listen(PORT, () => {
     logger.info(`Server up and runnig at PORT ${PORT}`);
@@ -242,5 +253,40 @@ function disconnectRobot(socket) {
 
             logger.trace(`Robot "${socket.robotToken}" disconnected`);
         }
+    }
+}
+
+// Utility functions
+
+function spawnError(msg) {
+    throw new Error(msg);
+}
+
+function checkSSLCertificate() {
+    const certFolder = `${BMATE_HOME}/SSLCertificate`;
+
+    // Check SSLCertificate folder
+    if (!pathExists(certFolder))
+        spawnError(`Impossible to access the folder ${certFolder}. Be sure that this folder exists`);
+
+    // Check if the key.pem file exists
+    if (!pathExists(`${certFolder}/key.pem`)) {
+        spawnError(`The ${certFolder}/key.pem file does not exists`);
+    }
+
+    // Check if the key.pem file exists
+    if (!pathExists(`${certFolder}/cert.pem`)) {
+        spawnError(`The ${certFolder}/cert.pem file does not exists`);
+    }
+}
+
+function pathExists(path) {
+
+    try {
+        fs.accessSync(path, fs.F_OK);
+
+        return true;
+    } catch (err) {
+        return false;
     }
 }
