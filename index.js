@@ -3,32 +3,22 @@
 const fs = require('fs');
 const log4js = require('log4js');
 const randtoken = require('rand-token');
+const bUtils = require('butils');
 
-const BMATE_HOME = process.env.BMATE_HOME;
-
-if (!BMATE_HOME) {
-    spawnError(`The BMATE_HOME enviroment variable is not defined. Is not possible get the properly
-configs for the server`);
-}
-
-checkSSLCertificate();
+bUtils.SSL.checkSSLCertificate();
 
 // Constants
-const serverOptions = {
-    key:            fs.readFileSync(`${BMATE_HOME}/SSLCertificate/key.pem`),
-    cert:           fs.readFileSync(`${BMATE_HOME}/SSLCertificate/cert.pem`),
-    NPNProtocols:   ['https/2.0', 'http/1.1', 'sdpy', 'http/1.0']
-};
-const PORT = 8989;
+const bConfigs = bUtils.getBmateConfigs();
+const logger = log4js.getLogger();
+
+const server = bUtils.getServer();
+const io = require('socket.io')(server);
+
+const robotsMap = new Map();
 const STOP_COMMAND = 'S';
 
-const server = require('https').createServer(serverOptions);
-const io = require('socket.io')(server);
-const logger = log4js.getLogger();
-const robotsMap = new Map();
-
-server.listen(PORT, () => {
-    logger.info(`Server up and runnig at PORT ${PORT}`);
+server.listen(bConfigs.socketServer.port, () => {
+    logger.info(`Server up and runnig at PORT ${bConfigs.socketServer.port}`);
 });
 
 io.on('connection', (socket) => {
@@ -215,7 +205,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        logger.trace('Bye sucker!');
+        logger.trace('Bye bye!');
 
         if (socket.isRobotClient) {
             disconnectRobotClient(socket);
@@ -253,40 +243,5 @@ function disconnectRobot(socket) {
 
             logger.trace(`Robot "${socket.robotToken}" disconnected`);
         }
-    }
-}
-
-// Utility functions
-
-function spawnError(msg) {
-    throw new Error(msg);
-}
-
-function checkSSLCertificate() {
-    const certFolder = `${BMATE_HOME}/SSLCertificate`;
-
-    // Check SSLCertificate folder
-    if (!pathExists(certFolder))
-        spawnError(`Impossible to access the folder ${certFolder}. Be sure that this folder exists`);
-
-    // Check if the key.pem file exists
-    if (!pathExists(`${certFolder}/key.pem`)) {
-        spawnError(`The ${certFolder}/key.pem file does not exists`);
-    }
-
-    // Check if the key.pem file exists
-    if (!pathExists(`${certFolder}/cert.pem`)) {
-        spawnError(`The ${certFolder}/cert.pem file does not exists`);
-    }
-}
-
-function pathExists(path) {
-
-    try {
-        fs.accessSync(path, fs.F_OK);
-
-        return true;
-    } catch (err) {
-        return false;
     }
 }

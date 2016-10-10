@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/xclassworks/bserver#readme",
   "dependencies": {
+    "butils": "git+https://github.com/xclassworks/butils.git",
     "log4js": "^0.6.38",
     "rand-token": "^0.2.1",
     "socket.io": "^1.4.8"
