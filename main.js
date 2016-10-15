@@ -91,7 +91,7 @@ io.on('connection', (socket) => {
         robotSocket.robot.viewers.push(viewer);
         emitSuccessEvent('join_robot_room', viewer);
     };
-    
+
     const onSignalingMessage = (message) => {
 
         if (!message) {
@@ -162,7 +162,7 @@ io.on('connection', (socket) => {
             if (socket.viewer) {
                 logger.trace(`Socket VIEWER "${socket.id}" disconnected`);
 
-                emitToAllRobotViewers(robotSocket, 'viewer_left');
+                emitToAllRobotViewers(robotSocket, 'viewer_left', socket.viewer);
             } else if (socket.robot) {
                 logger.trace(`Socket ROBOT "${socket.id}" disconnected`);
 
@@ -187,9 +187,9 @@ io.on('connection', (socket) => {
     // Register client events
 
     socket.on('join_robot_room', onJoinRobotRoom);
-    
+
     // Signaling RTC events
-    
+
     socket.on('signaling_message', onSignalingMessage);
 
     socket.on('disconnect', onDisconnect);
@@ -208,8 +208,8 @@ io.on('connection', (socket) => {
 
         robotSocket.robot.viewers.map((viewer) => {
             const viewerSocket = socketMap.get(viewer.id);
-            
-            if (viewerSocket) 
+
+            if (viewerSocket)
                 viewerSocket.emit(eventName, params);
         });
     };
