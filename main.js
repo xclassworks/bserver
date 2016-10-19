@@ -83,7 +83,7 @@ io.on('connection', (socket) => {
             }
         };
 
-        accessTokenMap.delete(accessToken);
+        // accessTokenMap.delete(accessToken);
         socket.viewer = viewer;
         robotSocket.emit('viewer_add', viewer);
 
@@ -104,7 +104,7 @@ io.on('connection', (socket) => {
         const emitterId = socket.id;
 
         if (!receiver) {
-            emitErrorEvent('signaling_message', 'No receiver socket found for the id ${message.to}');
+            emitErrorEvent('signaling_message', `No receiver socket found for the id ${message.to}`);
 
             return;
         }
@@ -162,10 +162,12 @@ io.on('connection', (socket) => {
             if (socket.viewer) {
                 logger.trace(`Socket VIEWER "${socket.id}" disconnected`);
 
+                robotSocket.emit('viewer_left', socket.viewer);
                 emitToAllRobotViewers(robotSocket, 'viewer_left', socket.viewer);
             } else if (socket.robot) {
                 logger.trace(`Socket ROBOT "${socket.id}" disconnected`);
 
+                robotSocket.emit('robot_disconnected', socket.robot);
                 emitToAllRobotViewers(robotSocket, 'robot_disconnected');
             }
         } else
@@ -198,10 +200,14 @@ io.on('connection', (socket) => {
 
     const emitErrorEvent = (eventName, err) => {
         socket.emit(`${eventName}:error`, err);
+
+        logger.error(`${eventName}:error`, err);
     };
 
     const emitSuccessEvent = (eventName, param) => {
         socket.emit(`${eventName}:success`, param);
+
+        logger.info(`${eventName}:success`, param);
     };
 
     const emitToAllRobotViewers = (robotSocket, eventName, params) => {
