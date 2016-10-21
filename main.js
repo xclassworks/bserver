@@ -58,6 +58,20 @@ io.on('connection', (socket) => {
         emitSuccessEvent('get_robot_room_access', { accessToken: accessToken });
     };
 
+    const onRobotMoveRequest = (moveInstructions) => {
+        const robotSocket = getRobotSocket();
+
+        if (!robotSocket) {
+            emitErrorEvent('robot_move_request', `No robot found for the socket id ${socket.id}`);
+
+            return;
+        }
+
+        robotSocket.emit('do_robot_movement', moveInstructions);
+
+        emitSuccessEvent('robot_move_request');
+    };
+
     const onJoinRobotRoom = (accessToken, viewerInfo) => {
         const robotSocket = accessTokenMap.get(accessToken);
 
@@ -125,7 +139,7 @@ io.on('connection', (socket) => {
             });
 
             // Validate if the socket with the receiver id is on the robot viewer list or is the robot
-            if (receiverList.length == 0 && receiver.id != robotSocket.id) {
+            if (receiverList.length === 0 && receiver.id != robotSocket.id) {
                 emitErrorEvent('signaling_message', `No viewers found for the receiver id "${receiver.id}"`);
 
                 return;
@@ -137,7 +151,7 @@ io.on('connection', (socket) => {
                 return viewer.id == receiver.id;
             });
 
-            if (robotReceiverList.length == 0) {
+            if (robotReceiverList.length === 0) {
                 emitErrorEvent('signaling_message', `No viewers found in robot for the receiver id "${receiver.id}"`);
 
                 return;
@@ -185,6 +199,8 @@ io.on('connection', (socket) => {
     socket.on('robot_register', onRobotRegister);
 
     socket.on('get_robot_room_access', onGetRobotRoomAccess);
+
+    socket.on('robot_move_request', onRobotMoveRequest);
 
     // Register client events
 
