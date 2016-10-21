@@ -69,7 +69,21 @@ io.on('connection', (socket) => {
 
         robotSocket.emit('do_robot_movement', moveInstructions);
 
-        emitSuccessEvent('robot_move_request');
+        emitSuccessEvent('robot_move_request', moveInstructions);
+    };
+
+    const onRobotStopRequest = () => {
+        const robotSocket = getRobotSocket();
+
+        if (!robotSocket) {
+            emitErrorEvent('robot_stop_request', `No robot found for the socket id ${socket.id}`);
+
+            return;
+        }
+
+        robotSocket.emit('stop_robot', {});
+
+        emitSuccessEvent('robot_stop_request');
     };
 
     const onJoinRobotRoom = (accessToken, viewerInfo) => {
@@ -201,6 +215,8 @@ io.on('connection', (socket) => {
     socket.on('get_robot_room_access', onGetRobotRoomAccess);
 
     socket.on('robot_move_request', onRobotMoveRequest);
+
+    socket.on('robot_stop_request', onRobotStopRequest);
 
     // Register client events
 
